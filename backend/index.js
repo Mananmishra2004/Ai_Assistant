@@ -13,7 +13,7 @@ const port = process.env.PORT || 8000;
 
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: ["http://localhost:5173","https://ai-assistant-122f8.web.app/","https://ai-assistant-122f8.firebaseapp.com/"],
     credentials: true,
   })
 );
