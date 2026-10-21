@@ -2,6 +2,14 @@ import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import genToken from "../config/token.js";
 
+// Cookie options for cross-origin HTTPS deployments
+const cookieOptions = {
+  httpOnly: true,
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  sameSite: "none",
+  secure: true,
+};
+
 export const signUp = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -24,12 +32,7 @@ export const signUp = async (req, res) => {
 
     const token = await genToken(user._id);
 
-   res.cookie("token", token, {
-  httpOnly: true,
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-  sameSite: "none",
-  secure: true,
-});
+    res.cookie("token", token, cookieOptions);
 
     return res.status(201).json(user);
   } catch (error) {
@@ -53,12 +56,8 @@ export const login = async (req, res) => {
 
     const token = await genToken(user._id);
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-      secure: process.env.NODE_ENV === "production",
-    });
+    // Apply the exact same cross-origin cookie options
+    res.cookie("token", token, cookieOptions);
 
     return res.status(200).json(user);
   } catch (error) {
@@ -68,7 +67,13 @@ export const login = async (req, res) => {
 
 export const logout = async (req, res) => {
   try {
-    res.clearCookie("token");
+    // Provide identical flags so the browser identifies and removes the cookie
+    res.clearCookie("token", {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+    });
+
     return res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
     return res.status(500).json({ message: "Logout error" });
